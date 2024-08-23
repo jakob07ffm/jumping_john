@@ -11,15 +11,16 @@ function love.load()
         gravity = 500,
         is_jumping = false,
         jump_start_y = 0,
-        on_ground = false
+        on_ground = false,
+        y_velocity = 0
     }
 
-    platfor_width = 100
-    platfor_height = 20
+    platform_width = 100
+    platform_height = 20
     platforms = {
-        {x = 200, y = 500, width = platfor_width, height = platfor_height},
-        {x = 400, y = 300, width = platfor_width, height = platfor_height},
-        {x = 300, y = 400, width = platfor_width, height = platfor_height}
+        {x = 200, y = 500, width = platform_width, height = platform_height},
+        {x = 400, y = 300, width = platform_width, height = platform_height},
+        {x = 300, y = 400, width = platform_width, height = platform_height}
     }
 end
 
@@ -30,57 +31,47 @@ function love.update(dt)
         player.x = player.x + player.speed * dt
     end
 
-    if player.x <= 0 then
+    if player.x < 0 then
         player.x = 0
-    end
-
-    if player.x + player.width >= win.width then
+    elseif player.x + player.width > win.width then
         player.x = win.width - player.width
     end
 
-    if love.keyboard.isDown("space") and player.on_ground and love.keyboard.isUp("space") then
+    if love.keyboard.isDown("space") and player.on_ground then
+        player.y_velocity = -math.sqrt(2 * player.jump_height * player.gravity)
         player.is_jumping = true
-        player.jump_start_y = player.y
         player.on_ground = false
     end
 
-    if player.is_jumping then
-        player.y = player.y - player.gravity * dt
-
-        if player.jump_start_y - player.y >= player.jump_height then
-            player.is_jumping = false
-        end
-    else
-        player.y = player.y + player.gravity * dt
-    end
+    player.y_velocity = player.y_velocity + player.gravity * dt
+    player.y = player.y + player.y_velocity * dt
 
     player.on_ground = false
-    for _, platfor in ipairs(platforms) do
-        if player.x < platfor.x + platfor.width and
-           player.x + player.width > platfor.x and
-           player.y + player.height > platfor.y and
-           player.y < platfor.y + platfor.height then
-
-            if player.y + player.height - player.gravity * dt <= platfor.y then
-                player.y = platfor.y - player.height
-                player.on_ground = true
-                player.is_jumping = false
-            end
+    for _, platform in ipairs(platforms) do
+        if player.x < platform.x + platform.width and
+           player.x + player.width > platform.x and
+           player.y + player.height > platform.y and
+           player.y + player.height - player.y_velocity * dt <= platform.y then
+            player.y = platform.y - player.height
+            player.y_velocity = 0
+            player.on_ground = true
         end
     end
 
     if player.y > win.height - player.height then
         player.y = win.height - player.height
+        player.y_velocity = 0
         player.on_ground = true
     end
 end
 
 function love.draw()
+
     love.graphics.setColor(1, 0, 0)
     love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
 
     love.graphics.setColor(0, 1, 0)
-    for _, platfor in ipairs(platforms) do 
-        love.graphics.rectangle("fill", platfor.x, platfor.y, platfor.width, platfor.height)
+    for _, platform in ipairs(platforms) do 
+        love.graphics.rectangle("fill", platform.x, platform.y, platform.width, platform.height)
     end
 end
