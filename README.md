@@ -28,4 +28,4 @@ love <directory_name>
 - **Move Right**: `D`
 - **Jump**: `Space`
 
-![](jump_screenshot.JPG)
+![](jumping_screenshot.JPG)
